@@ -1,0 +1,13 @@
+# DOCKER BUILD IMAGE
+
+# DOCKER BUILD CONTAINER
+
+
+========================================================
+
+
+# REMOVE DOCKER COMPOSE
+    - docker compose down
+
+# BUILD DOCKER COMPOSE
+    - docker compose up --build
