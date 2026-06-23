@@ -11,3 +11,6 @@
 
 # BUILD DOCKER COMPOSE
     - docker compose up --build
+
+# SERVER UP DOCKER COMPOSE
+    - docker compose up
