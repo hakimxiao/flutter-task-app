@@ -4,10 +4,10 @@ import 'package:frontend/features/home/repository/task_remote_repository.dart';
 import 'package:frontend/models/task_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-part 'add_new_task_state.dart';
+part 'task_state.dart';
 
-class AddNewTaskCubit extends Cubit<AddNewTaskState> {
-  AddNewTaskCubit() : super(AddNewTaskInitial());
+class TaskCubit extends Cubit<TasksState> {
+  TaskCubit() : super(TasksStateInitial());
   final taskRemoteRepository = TaskRemoteRepository();
 
   Future<void> createNewTask({
@@ -18,7 +18,7 @@ class AddNewTaskCubit extends Cubit<AddNewTaskState> {
     required String token,
   }) async {
     try {
-      emit(AddNewTaskLoading());
+      emit(TasksStateLoading());
       final taskModel = await taskRemoteRepository.createTask(
         title: title,
         description: description,
@@ -27,9 +27,20 @@ class AddNewTaskCubit extends Cubit<AddNewTaskState> {
         token: token,
       );
 
-      emit(AddNewTaskSuccess(taskModel));
+      emit(TasksStateSuccess(taskModel));
     } catch (err) {
-      emit(AddNewTaskError(err.toString()));
+      emit(TasksStateError(err.toString()));
+    }
+  }
+
+  Future<void> getAllTasks({required String token}) async {
+    try {
+      emit(TasksStateLoading());
+      final tasks = await taskRemoteRepository.getTasks(token: token);
+
+      emit(GetTasksSuccess(tasks));
+    } catch (err) {
+      emit(TasksStateError(err.toString()));
     }
   }
 }

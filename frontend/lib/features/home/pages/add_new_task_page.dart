@@ -1,7 +1,7 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/cubit/auth_cubit.dart';
-import 'package:frontend/features/home/cubit/add_new_task_cubit.dart';
+import 'package:frontend/features/home/cubit/task_cubit.dart';
 
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,7 +29,7 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
     if (formKey.currentState!.validate()) {
       AuthLoggedIn user = context.read<AuthCubit>().state as AuthLoggedIn;
 
-      context.read<AddNewTaskCubit>().createNewTask(
+      context.read<TaskCubit>().createNewTask(
         title: titleController.text.trim(),
         description: descriptionController.text.trim(),
         color: selectedColor,
@@ -54,14 +54,22 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
         actions: [
           GestureDetector(
             onTap: () async {
-              final _selectedDate = await showDatePicker(
+              final pickedDate = await showDatePicker(
                 context: context,
+                initialDate: selectedDate,
                 firstDate: DateTime.now(),
                 lastDate: DateTime.now().add(Duration(days: 90)),
               );
-              if (_selectedDate != null) {
+
+              if (pickedDate != null) {
                 setState(() {
-                  selectedDate = _selectedDate;
+                  selectedDate = DateTime(
+                    pickedDate.year,
+                    pickedDate.month,
+                    pickedDate.day,
+                    selectedDate.hour,
+                    selectedDate.minute,
+                  );
                 });
               }
             },
@@ -70,16 +78,40 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
               child: Text(DateFormat('MM-d-y').format(selectedDate)),
             ),
           ),
+          GestureDetector(
+            onTap: () async {
+              final selectedTime = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.fromDateTime(selectedDate),
+              );
+
+              if (selectedTime != null) {
+                setState(() {
+                  selectedDate = DateTime(
+                    selectedDate.year,
+                    selectedDate.month,
+                    selectedDate.day,
+                    selectedTime.hour,
+                    selectedTime.minute,
+                  );
+                });
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(DateFormat.jm().format(selectedDate)),
+            ),
+          ),
         ],
       ),
 
-      body: BlocConsumer<AddNewTaskCubit, AddNewTaskState>(
+      body: BlocConsumer<TaskCubit, TasksState>(
         listener: (context, state) {
-          if (state is AddNewTaskError) {
+          if (state is TasksStateError) {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(state.error)));
-          } else if (state is AddNewTaskSuccess) {
+          } else if (state is TasksStateSuccess) {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Task added successfully')));
@@ -87,7 +119,7 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
           }
         },
         builder: (context, state) {
-          if (state is AddNewTaskLoading) {
+          if (state is TasksStateLoading) {
             return Center(child: CircularProgressIndicator());
           }
           return Padding(

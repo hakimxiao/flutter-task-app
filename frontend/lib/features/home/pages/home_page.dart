@@ -1,14 +1,30 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/core/constants/utils.dart';
+import 'package:frontend/features/auth/cubit/auth_cubit.dart';
+import 'package:frontend/features/home/cubit/task_cubit.dart';
 import 'package:frontend/features/home/pages/add_new_task_page.dart';
 import 'package:frontend/features/home/widgets/date_selector.dart';
 import 'package:frontend/features/home/widgets/task_card.dart';
+import 'package:intl/intl.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   static MaterialPageRoute route() =>
       MaterialPageRoute(builder: (context) => HomePage());
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    final user = context.read<AuthCubit>().state as AuthLoggedIn;
+    context.read<TaskCubit>().getAllTasks(token: user.user.token);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,36 +38,61 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          DateSelector(),
-          Row(
-            children: [
-              Expanded(
-                child: TaskCard(
-                  color: Color.fromRGBO(246, 222, 194, 1),
-                  headerText: 'Hello',
-                  descriptionText: 'test task',
-                ),
-              ),
-              Container(
-                height: 10,
-                width: 10,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: strengthenColor(
-                    Color.fromRGBO(246, 222, 194, 1),
-                    0.69,
+      body: BlocBuilder<TaskCubit, TasksState>(
+        builder: (context, state) {
+          if (state is TasksStateLoading) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (state is TasksStateError) {
+            return Center(child: Text(state.error));
+          }
+
+          if (state is GetTasksSuccess) {
+            final tasks = state.tasks;
+
+            return Column(
+              children: [
+                DateSelector(),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: tasks.length,
+                    itemBuilder: (context, index) {
+                      final task = tasks[index];
+
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: TaskCard(
+                              color: task.color,
+                              headerText: task.title,
+                              descriptionText: task.description,
+                            ),
+                          ),
+                          Container(
+                            height: 10,
+                            width: 10,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: strengthenColor(task.color, 0.69),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Text(
+                              DateFormat.jm().format(task.dueAt),
+                              style: TextStyle(fontSize: 17),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Text('10:00AM', style: TextStyle(fontSize: 17)),
-              ),
-            ],
-          ),
-        ],
+              ],
+            );
+          }
+          return SizedBox();
+        },
       ),
     );
   }
