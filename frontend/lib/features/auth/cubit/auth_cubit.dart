@@ -26,8 +26,6 @@ class AuthCubit extends Cubit<AuthState> {
       } else {
         emit(AuthInitial());
       }
-
-      emit(AuthInitial());
     } catch (err) {
       emit(AuthInitial());
     }

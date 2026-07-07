@@ -19,6 +19,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  DateTime selectedDate = DateTime.now();
+
   @override
   void initState() {
     final user = context.read<AuthCubit>().state as AuthLoggedIn;
@@ -48,11 +50,26 @@ class _HomePageState extends State<HomePage> {
           }
 
           if (state is GetTasksSuccess) {
-            final tasks = state.tasks;
+            final tasks = state.tasks
+                .where(
+                  (element) =>
+                      DateFormat("d").format(element.dueAt) ==
+                          DateFormat("d").format(selectedDate) &&
+                      selectedDate.month == element.dueAt.month &&
+                      selectedDate.year == element.dueAt.year,
+                )
+                .toList();
 
             return Column(
               children: [
-                DateSelector(),
+                DateSelector(
+                  selectedDate: selectedDate,
+                  onTap: (date) {
+                    setState(() {
+                      selectedDate = date;
+                    });
+                  },
+                ),
                 Expanded(
                   child: ListView.builder(
                     itemCount: tasks.length,

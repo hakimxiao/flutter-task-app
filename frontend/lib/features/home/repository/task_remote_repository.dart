@@ -41,15 +41,23 @@ class TaskRemoteRepository {
         headers: {'Content-Type': 'application/json', 'x-auth-token': token},
       );
 
-      if (response.statusCode != 201) {
-        throw jsonDecode(response.body)['error'];
+      if (response.statusCode != 200) {
+        final decodedBody = jsonDecode(response.body);
+        throw decodedBody is Map<String, dynamic>
+            ? decodedBody['error'] ?? decodedBody['msg'] ?? response.body
+            : response.body;
       }
 
-      final listOfTasks = jsonDecode(response.body);
+      final decodedBody = jsonDecode(response.body);
+      final listOfTasks = decodedBody is List
+          ? decodedBody
+          : decodedBody is Map<String, dynamic> && decodedBody['tasks'] is List
+          ? decodedBody['tasks'] as List
+          : <dynamic>[];
       List<TaskModel> taskList = [];
 
       for (var element in listOfTasks) {
-        taskList.add(TaskModel.fromMap(element));
+        taskList.add(TaskModel.fromMap(element as Map<String, dynamic>));
       }
 
       return taskList;

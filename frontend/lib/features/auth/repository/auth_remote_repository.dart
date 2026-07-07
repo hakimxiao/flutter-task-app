@@ -54,8 +54,9 @@ class AuthRemoteRepository {
   }
 
   Future<UserModel?> getUserData() async {
+    final token = await spService.getToken();
+
     try {
-      final token = await spService.getToken();
       if (token == null) {
         return null;
       }
@@ -77,11 +78,11 @@ class AuthRemoteRepository {
         throw jsonDecode(userResponse.body)['msg'];
       }
 
-      return UserModel.fromJson(userResponse.body);
+      return UserModel.fromJson(userResponse.body).copyWith(token: token);
     } catch (err) {
       final user = await authLocalRepository.getUser();
 
-      return user;
+      return user?.copyWith(token: token);
     }
   }
 }

@@ -1,11 +1,11 @@
 import 'dart:ui';
 
 Color strengthenColor(Color color, double factor) {
-  int r = (color.red * factor).clamp(0, 255).toInt();
-  int g = (color.green * factor).clamp(0, 255).toInt();
-  int b = (color.blue * factor).clamp(0, 255).toInt();
+  int r = ((_colorChannel(color.r) * factor).clamp(0, 255)).toInt();
+  int g = ((_colorChannel(color.g) * factor).clamp(0, 255)).toInt();
+  int b = ((_colorChannel(color.b) * factor).clamp(0, 255)).toInt();
 
-  return Color.fromARGB(color.alpha, r, g, b);
+  return Color.fromARGB(_colorChannel(color.a), r, g, b);
 }
 
 List<DateTime> generateWeekDates(int weekOfSet) {
@@ -18,9 +18,13 @@ List<DateTime> generateWeekDates(int weekOfSet) {
 }
 
 String rgbToHex(Color color) {
-  return '${color.red.toRadixString(16).padLeft(2, '0')}${color.green.toRadixString(16).padLeft(2, '0')}${color.blue.toRadixString(16).padLeft(2, '0')}';
+  return '${_colorChannel(color.r).toRadixString(16).padLeft(2, '0')}${_colorChannel(color.g).toRadixString(16).padLeft(2, '0')}${_colorChannel(color.b).toRadixString(16).padLeft(2, '0')}';
 }
 
 Color hexToRgb(String hex) {
   return Color(int.parse(hex, radix: 16) + 0xFF000000);
+}
+
+int _colorChannel(double value) {
+  return (value * 255).round().clamp(0, 255);
 }
