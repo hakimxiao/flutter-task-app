@@ -1,5 +1,6 @@
 import 'package:flutter/animation.dart';
 import 'package:frontend/core/constants/utils.dart';
+import 'package:frontend/features/home/repository/task_local_repository.dart';
 import 'package:frontend/features/home/repository/task_remote_repository.dart';
 import 'package:frontend/models/task_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +10,7 @@ part 'task_state.dart';
 class TaskCubit extends Cubit<TasksState> {
   TaskCubit() : super(TasksStateInitial());
   final taskRemoteRepository = TaskRemoteRepository();
+  final taskLocalRepository = TaskLocalRepository();
 
   Future<void> createNewTask({
     required String title,
@@ -26,6 +28,8 @@ class TaskCubit extends Cubit<TasksState> {
         dueAt: dueAt,
         token: token,
       );
+
+      await taskLocalRepository.insertTask(taskModel);
 
       emit(TasksStateSuccess(taskModel));
     } catch (err) {
