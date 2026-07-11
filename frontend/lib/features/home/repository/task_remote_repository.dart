@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:frontend/core/constants/constants.dart';
+import 'package:frontend/core/constants/utils.dart';
 import 'package:frontend/features/home/repository/task_local_repository.dart';
 import 'package:frontend/models/task_model.dart';
 import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
 
 class TaskRemoteRepository {
   final taskLocalRepository = TaskLocalRepository();
@@ -14,6 +16,7 @@ class TaskRemoteRepository {
     required String hexColor,
     required DateTime dueAt,
     required String token,
+    required String uid,
   }) async {
     try {
       final response = await http.post(
@@ -33,7 +36,23 @@ class TaskRemoteRepository {
 
       return TaskModel.fromJson(response.body);
     } catch (err) {
-      rethrow;
+      try {
+        final taskModel = TaskModel(
+          id: Uuid().v4(),
+          uid: uid,
+          title: title,
+          color: hexToRgb(hexColor),
+          description: description,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          dueAt: dueAt,
+          isSynced: 0,
+        );
+        await taskLocalRepository.insertTask(taskModel);
+        return taskModel;
+      } catch (err) {
+        rethrow;
+      }
     }
   }
 

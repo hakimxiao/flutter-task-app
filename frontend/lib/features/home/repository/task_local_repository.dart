@@ -21,11 +21,11 @@ class TaskLocalRepository {
     final path = join(dbPath, "tasks.db");
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < newVersion) {
           await db.execute(
-            'ALTER TABLE $tableName ADD COLUMN color TEXT NOT NULL DEFAULT "default_color"',
+            'ALTER TABLE $tableName ADD COLUMN isSynced INTEGER NOT NULL DEFAULT',
           );
         }
       },
@@ -37,9 +37,10 @@ class TaskLocalRepository {
           description TEXT NOT NULL,
           uid TEXT NOT NULL,
           dueAt TEXT NOT NULL,
-          color TEXT NOT NULL,
+          hexColor TEXT NOT NULL,
           createdAt TEXT NOT NULL,
-          updatedAt TEXT NOT NULL)
+          updatedAt TEXT NOT NULL,
+          isSynced INTEGER NOT NULL)
         ''');
       },
     );
@@ -47,6 +48,7 @@ class TaskLocalRepository {
 
   Future<void> insertTask(TaskModel task) async {
     final db = await database;
+    await db.delete(tableName, where: 'id = ?', whereArgs: [task.id]);
     await db.insert(tableName, task.toMap());
   }
 

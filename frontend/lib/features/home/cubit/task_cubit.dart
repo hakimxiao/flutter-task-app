@@ -18,10 +18,12 @@ class TaskCubit extends Cubit<TasksState> {
     required Color color,
     required DateTime dueAt,
     required String token,
+    required String uid,
   }) async {
     try {
       emit(TasksStateLoading());
       final taskModel = await taskRemoteRepository.createTask(
+        uid: uid,
         title: title,
         description: description,
         hexColor: rgbToHex(color),

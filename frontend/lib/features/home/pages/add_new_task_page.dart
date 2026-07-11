@@ -31,6 +31,7 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
       AuthLoggedIn user = context.read<AuthCubit>().state as AuthLoggedIn;
 
       context.read<TaskCubit>().createNewTask(
+        uid: user.user.id,
         title: titleController.text.trim(),
         description: descriptionController.text.trim(),
         color: selectedColor,
