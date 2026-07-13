@@ -19,6 +19,33 @@ taskRouter.post("/", auth, async (req: AuthRequest, res) => {
   }
 });
 
+taskRouter.post("/sync", auth, async (req: AuthRequest, res) => {
+  try {
+    const tasksList = req.body;
+
+    const filteredTasks: NewTask[] = [];
+
+    for (let t of tasksList) {
+      t = {
+        ...t,
+        dueAt: new Date(t.dueAt),
+        createdAt: new Date(t.createdAt),
+        updatedAt: new Date(t.updatedAt),
+        uid: req.user,
+      };
+      filteredTasks.push(t);
+    }
+    const pushedTasks = await db
+      .insert(tasks)
+      .values(filteredTasks)
+      .returning();
+
+    res.status(201).json(pushedTasks);
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+});
+
 taskRouter.get("/", auth, async (req: AuthRequest, res) => {
   try {
     const myTasks = await db
